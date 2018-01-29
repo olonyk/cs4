@@ -17,6 +17,11 @@ class ReaderGUI(tk.Frame):
         self.header = tk.StringVar(self.master)
         self.header.set("1")
 
+        self.sex_symb = tk.StringVar(self.master)
+        self.sex_symb.set("sex")
+        self.age_symb = tk.StringVar(self.master)
+        self.age_symb.set("age")
+
         choices = {"csv", "excel"}
  
         tk.OptionMenu(self.top_frame, self.file_format, *choices, command=self.build_settings_frame).grid(row=0, column=0, sticky=tk.W)
@@ -47,6 +52,10 @@ class ReaderGUI(tk.Frame):
                 tk.OptionMenu(self.settings_frame, self.sheet, *sheets).grid(row=0, column=1, sticky=tk.W)
                 tk.Label(self.settings_frame, text="Header row:").grid(row=1, column=0, sticky=tk.W)
                 tk.Entry(self.settings_frame, textvariable=self.header, width=1).grid(row=1, column=1, sticky=tk.W)
+                tk.Label(self.settings_frame, text="Sex header:").grid(row=2, column=0, sticky=tk.W)
+                tk.Entry(self.settings_frame, textvariable=self.sex_symb, width=5).grid(row=2, column=1, sticky=tk.W)
+                tk.Label(self.settings_frame, text="Age header:").grid(row=3, column=0, sticky=tk.W)
+                tk.Entry(self.settings_frame, textvariable=self.age_symb, width=5).grid(row=3, column=1, sticky=tk.W)
             else:
                 T = tk.Text(self.settings_frame, height=3, width=30)
                 T.grid(row=0, column=0, sticky=tk.W)

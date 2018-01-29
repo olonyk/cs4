@@ -1,5 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
+from tkinter.colorchooser import *
+
 
 class ScrollableFrame(ttk.Frame):
     """ Consider me a regular frame with a vertical scrollbar 
@@ -36,7 +38,11 @@ class ScrollableFrame(ttk.Frame):
         xscrollbar.config(command=self.canvas.xview)
 
         # create the scrollable frame and assign it to the windows item of the canvas
+        style = ttk.Style()
+        style.configure("BW.TLabel", foreground="black", background="white")
+        kw["style"] = "BW.TLabel"
         ttk.Frame.__init__(self, win_frame, *args, **kw)
+
         self.windows_item = self.canvas.create_window(0,0, window=self, anchor=tk.NW)
 
     def update(self):
@@ -46,3 +52,21 @@ class ScrollableFrame(ttk.Frame):
         """
         self.update_idletasks()
         self.canvas.config(scrollregion=self.canvas.bbox(self.windows_item))
+
+class ColorWidget(tk.Frame):
+    def __init__(self, master=None, text="", color=None):
+        tk.Frame.__init__(self, master)
+        tk.Label(self, text=text).pack(side=tk.LEFT)
+        self.color = color
+        if not color:
+            self.color = tk.StringVar(master)
+            self.color.set("#ff0000")
+        self.color_lbl = tk.Label(self, text="    ", background=self.color.get(), bd=1, relief=tk.GROOVE)
+        self.color_lbl.pack(side=tk.LEFT)
+        tk.Button(self, text='Select Color', command=self.getColor).pack(side=tk.LEFT)
+
+    def getColor(self):
+        color = askcolor()
+        if color[1]:
+            self.color.set(color[1])
+            self.color_lbl.configure(background=self.color.get())

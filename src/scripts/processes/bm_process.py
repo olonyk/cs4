@@ -19,23 +19,35 @@ class BM_Process(Process):
         if "score_queue" in kwargs.keys():
             self._score_queue = kwargs["score_queue"]
             self._pattern_queue = kwargs["pattern_queue"]
+        self.max_cluster = kwargs["max_cluster"]
 
     def run(self):
         _, cols = np.shape(self.pos_bm)
         top_scores = np.ones(cols)*-np.inf
+        top_pos = np.ones(cols)*-np.inf
+        top_neg = np.ones(cols)*-np.inf
         top_pattern = np.zeros(cols)
         for running_int in range(self._start, self._end):
             col_pattern = self._bin_array(running_int, cols)
+            if np.sum(col_pattern) > self.max_cluster:
+                continue
             pos_score = np.any(self.pos_bm * col_pattern, axis=1)
             neg_score = np.any(self.neg_bm * col_pattern, axis=1)
-            pattern_score = np.sum(pos_score-neg_score)
+            pattern_score = np.sum(pos_score) - np.sum(neg_score)
             if pattern_score > top_scores[sum(col_pattern)-1]:
                 top_scores[sum(col_pattern)-1] = pattern_score
                 top_pattern[sum(col_pattern)-1] = running_int
+                top_pos[sum(col_pattern)-1] = np.sum(pos_score)
+                top_neg[sum(col_pattern)-1] = np.sum(neg_score)
+            if running_int % 10000 == 0:
+                print((running_int - self._start)/(self._end - self._start))
         # Write the result to the score and pattern matrices.
         if self._score_queue:
-            self._score_queue.put(top_scores)
-            self._pattern_queue.put(top_pattern)
+            self._score_queue.put({"score":top_scores,
+                                   "pos":top_pos,
+                                   "neg":top_neg,
+                                   "pattern":top_pattern})
+            #self._pattern_queue.put(top_pattern)
 
     def _bin_array(self, num, m):
         """Convert a positive integer num into an m-bit bit vector

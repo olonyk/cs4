@@ -2,7 +2,6 @@ import multiprocessing as mp
 
 import numpy as np
 from pkg_resources import resource_filename
-
 from ..processes.bm_process import BM_Process
 
 
