@@ -1,3 +1,4 @@
 # cs4
 *.pyc
 */__pycache__/
+*.csv
