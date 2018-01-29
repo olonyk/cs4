@@ -1,5 +1,6 @@
 # cs4
 *.pyc
-*/__pycache__/
+__pycache__/
 *.csv
 *example_data/
+*.vscode/
