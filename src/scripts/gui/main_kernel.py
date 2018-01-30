@@ -11,6 +11,7 @@ from ..processes.bm_wrapper import BM_Wrapper
 from .main_gui import MainGUI
 from .reader_kernel import ReaderKernel
 from .export_kernel import ExportKernel
+from .preview_kernel import PreviewKernel
 
 class MainKernel(object):
     def __init__(self, args):
@@ -33,7 +34,12 @@ class MainKernel(object):
         self.app = MainGUI(self.root, self)
 
     def run(self):
-        self.root.mainloop()
+        while True:
+            try:
+                self.root.mainloop()
+                break
+            except UnicodeDecodeError:
+                pass
         self.root.destroy()
 
     def cmd_import(self):
@@ -78,6 +84,10 @@ class MainKernel(object):
             data = np.delete(data, [i for i, col in enumerate(self.app.col_map) if not col], axis=1)
             if hasattr(self.row_map, "shape"):
                 data = np.delete(data, [i for i, row in enumerate(self.row_map) if not row], axis=0)
+            meta_data = {"pos_val":self.get_vals(self.app.settings["pos_val"]),
+                         "neg_val":self.get_vals(self.app.settings["neg_val"]),
+                         "max_clust":int(self.app.settings["max_clust"].get()),
+                         "min_clust":int(self.app.settings["min_clust"].get())}
             pos_val = self.get_vals(self.app.settings["pos_val"])
             neg_val = self.get_vals(self.app.settings["neg_val"])
             max_clust = int(self.app.settings["max_clust"].get())
@@ -87,12 +97,13 @@ class MainKernel(object):
                                                      pos_map=pos_val,
                                                      neg_map=neg_val)
             elapsedTime = time.time() - startTime
-            print(elapsedTime)
+            meta_data["elapsedTime"] = self.to_str_time(elapsedTime, times=2)
+            #print(elapsedTime)
             self.settings["exe_time"].append([int(self.app.info_text[1].get()), elapsedTime])
             self.save_settings()
             self.update_info()
             self.result_table = self.get_res_table(result_dictionary)
-            self.app.build_result(self.result_table)
+            PreviewKernel(self.result_table, meta_data)
 
     def get_res_table(self, result_dictionary):
         sco_vec = result_dictionary["score_vec"]
@@ -169,6 +180,16 @@ class MainKernel(object):
             except ValueError:
                 self.app.settings["max_clust"].set(str(sum(self.app.col_map)))
             self.update_info()
+    
+    def cmd_min_cluster_updated(self, *args):
+        if self.app.settings["min_clust"].get():
+            val = self.app.settings["min_clust"].get()
+            try:
+                if int(val) > int(self.app.settings["max_clust"].get()):
+                    self.app.settings["min_clust"].set(self.app.settings["max_clust"].get())
+            except ValueError:
+                self.app.settings["max_clust"].set("1")
+            self.update_info()
 
     def get_age_filter(self):
         age_bitmap = np.ones(len(self.data))
@@ -224,7 +245,7 @@ class MainKernel(object):
             str_time = self.to_str_time(exe_times)
             self.app.info_text[3].set(str_time)
 
-    def to_str_time(self, seconds):
+    def to_str_time(self, seconds, times=1):
         intervals = (
             ('weeks', 604800),  # 60 * 60 * 24 * 7
             ('days', 86400),    # 60 * 60 * 24
@@ -233,7 +254,7 @@ class MainKernel(object):
             ('seconds', 1),
         )
         result = []
-
+        ts = 0
         for name, count in intervals:
             value = seconds // count
             if value:
@@ -241,7 +262,9 @@ class MainKernel(object):
                 if value == 1:
                     name = name.rstrip('s')
                 result.append("{} {}".format(int(value), name))
-                break
+                ts += 1
+                if ts >= times:
+                    break
         if not result:
             return "{:0.2f}s".format(seconds)
         return ', '.join(result[:])
