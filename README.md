@@ -13,6 +13,8 @@
    + The default value should be 5 vs. 1 2. √
    + Add reset options.
    + Put more stuff in settings file.
+5. Minor addons
+   + Implement minimum cluster size.
 
 ### Known bugs
 1. After importing and running data once, without error, a second import and run lead to the following error message: `TypeError: ufunc 'isfinite' not supported for the input types, and the inputs could not be safely coerced to any supported types according to the casting rule ''safe''`.
