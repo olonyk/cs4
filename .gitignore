@@ -4,3 +4,6 @@
 *.csv
 *example_data/
 *.vscode/
+build/
+dist/
+help_sources/
