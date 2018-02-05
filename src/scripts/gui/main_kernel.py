@@ -1,5 +1,6 @@
 import json
 import time
+from os.path import dirname, join, isfile
 from tkinter import *
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 
@@ -16,13 +17,14 @@ from .preview_kernel import PreviewKernel
 class MainKernel(object):
     def __init__(self, args):
         # Read settings file
-        self.settings = json.load(open(resource_filename("src.resources.settings",
-                                                         "settings.json")))
+        sfile = join(dirname(dirname(dirname(__file__))), "resources", "settings", "settings.json")
+        self.settings = json.load(open(sfile))
         # Initialize variables
         self.data = []
         self.header = []
         self.age = []
         self.sex = []
+        self.ffan = {}
         self.row_map = []
         self.result_table = []
         self.app = None
@@ -66,6 +68,10 @@ class MainKernel(object):
             app.settings["sex"].set(" ".join([str(x) for x in list(set(self.sex))]))
         else:
             app.settings["sex"].set("N/A")
+        if self.ffan:
+            app.settings["ffan_list"] = self.ffan.keys()
+            app.update_ffan()
+            print(app.settings["ffan_list"])
 
     def update_overview(self):
         if self.header:
@@ -87,7 +93,8 @@ class MainKernel(object):
             meta_data = {"pos_val":self.get_vals(self.app.settings["pos_val"]),
                          "neg_val":self.get_vals(self.app.settings["neg_val"]),
                          "max_clust":int(self.app.settings["max_clust"].get()),
-                         "min_clust":int(self.app.settings["min_clust"].get())}
+                         "min_clust":int(self.app.settings["min_clust"].get()),
+                         "ffan":self.app.settings["ffan_var"].get()}
             pos_val = self.get_vals(self.app.settings["pos_val"])
             neg_val = self.get_vals(self.app.settings["neg_val"])
             max_clust = int(self.app.settings["max_clust"].get())
@@ -201,6 +208,9 @@ class MainKernel(object):
                                             np.array(self.age) <= max_age)
             except ValueError:
                 pass
+        elif self.app:
+            self.app.settings["min_age"].set("N/A")
+            self.app.settings["max_age"].set("N/A")
         return age_bitmap
 
     def get_sex_filter(self):
@@ -214,14 +224,29 @@ class MainKernel(object):
                 return sex_bitmap
             except ValueError:
                 pass
+        elif self.app:
+            self.app.settings["sex"].set("N/A")
         return np.ones(len(self.data))
 
     def cmd_age_updated(self, *args):
         age_bitmap = self.get_age_filter()
         sex_bitmap = self.get_sex_filter()
+        fan_bitmap = self.get_fan_filter()
         self.row_map = np.logical_and(age_bitmap, sex_bitmap)
+        self.row_map = np.logical_and(self.row_map, fan_bitmap)
         if self.app:
             self.update_info()
+        
+    def get_fan_filter(self):
+        fan_bitmap = np.ones(len(self.data))
+        if self.ffan:
+            fan_string = self.app.settings["ffan_var"].get()
+            if fan_string == "All" or fan_string == "":
+                fan_bitmap = np.ones(len(self.data))
+            else:
+                fan_bitmap = np.asarray(self.ffan[fan_string])
+        return fan_bitmap
+        
 
     def cmd_quit(self):
         self.root.destroy()
