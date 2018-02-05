@@ -27,6 +27,7 @@ class MainGUI(Frame):
         self.include_cols = []
         self.col_map = []
         self.settings = {}
+        self.om = None
 
         # Settings frame
         self.build_settings_frame()
@@ -102,7 +103,9 @@ class MainGUI(Frame):
                          "min_clust": StringVar(self.master),
                          "max_age": StringVar(self.master),
                          "min_age": StringVar(self.master),
-                         "sex": StringVar(self.master)}
+                         "sex": StringVar(self.master),
+                         "ffan_var": StringVar(self.master),
+                         "ffan_list": []}
         self.settings["pos_val"].set("5")
         self.settings["neg_val"].set("1 2")
         self.settings["max_clust"].set("0")
@@ -115,6 +118,8 @@ class MainGUI(Frame):
         self.settings["min_age"].trace("w", self.kernel.cmd_age_updated)
         self.settings["sex"].set("1 2")
         self.settings["sex"].trace("w", self.kernel.cmd_age_updated)
+        self.settings["ffan_var"].set("All")
+        self.settings["ffan_var"].trace("w", self.kernel.cmd_age_updated)
 
         lbls = ["Positive values:",
                 "Negative values:",
@@ -122,7 +127,8 @@ class MainGUI(Frame):
                 "Minimum cluster size:",
                 "Maximum age:",
                 "Minimum age:",
-                "Sex:"]
+                "Sex:",
+                "Format fan:"]
         for i, lbl_text in enumerate(lbls):
             Label(frame, text=lbl_text).grid(row=i, column=0, sticky=W)
         lbls = ["pos_val",
@@ -136,11 +142,23 @@ class MainGUI(Frame):
             Entry(frame, textvariable=self.settings[lbl_text], width=4).grid(row=i,
                                                                              column=1,
                                                                              sticky=W)
+        # TODO Add format fan handle.
+        self.om = OptionMenu(frame, self.settings["ffan_var"], self.settings["ffan_list"])
+        self.om.grid(row=i+1, column=1, sticky=W)
 
         Button(frame, text="Execute", command=self.kernel.cmd_execute).grid(row=100,
                                                                             column=0,
                                                                             sticky=W)
         self.kernel.default_settings(app=self)
+
+    def update_ffan(self):
+        if self.om:
+            menu = self.om["menu"]
+            menu.delete(0, "end")
+            for string in self.settings["ffan_list"]:
+                print(string)
+                menu.add_command(label=string, 
+                                 command=lambda value=string: self.settings["ffan_var"].set(value))
 
     def build_info_frame(self):
         info_frame = Frame(self.left_frame, bd=1, relief=GROOVE)
