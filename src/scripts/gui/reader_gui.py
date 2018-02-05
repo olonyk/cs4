@@ -21,6 +21,8 @@ class ReaderGUI(tk.Frame):
         self.sex_symb.set("sex")
         self.age_symb = tk.StringVar(self.master)
         self.age_symb.set("age")
+        self.ffan_init = tk.StringVar(self.master)
+        self.ffan_init.set("x")
 
         choices = {"csv", "excel"}
  
@@ -56,6 +58,8 @@ class ReaderGUI(tk.Frame):
                 tk.Entry(self.settings_frame, textvariable=self.sex_symb, width=5).grid(row=2, column=1, sticky=tk.W)
                 tk.Label(self.settings_frame, text="Age header:").grid(row=3, column=0, sticky=tk.W)
                 tk.Entry(self.settings_frame, textvariable=self.age_symb, width=5).grid(row=3, column=1, sticky=tk.W)
+                tk.Label(self.settings_frame, text="Format fan initial:").grid(row=4, column=0, sticky=tk.W)
+                tk.Entry(self.settings_frame, textvariable=self.ffan_init, width=5).grid(row=4, column=1, sticky=tk.W)
             else:
                 T = tk.Text(self.settings_frame, height=3, width=30)
                 T.grid(row=0, column=0, sticky=tk.W)

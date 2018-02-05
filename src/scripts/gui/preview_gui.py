@@ -115,17 +115,20 @@ class PreviewGUI(tk.Frame):
         tk.Label(meta_frame, text="Smallest cluster:", justify=tk.LEFT, anchor=tk.W).grid(row=3, column=0, sticky=tk.W+tk.E+tk.N+tk.S)
         tk.Label(meta_frame, text=meta_data["min_clust"], justify=tk.LEFT, anchor=tk.W).grid(row=3, column=1, sticky=tk.W+tk.E+tk.N+tk.S)
         
-        tk.Label(meta_frame, text="Running time:", justify=tk.LEFT, anchor=tk.W).grid(row=4, column=0, sticky=tk.W+tk.E+tk.N+tk.S)
-        tk.Label(meta_frame, text=meta_data["elapsedTime"], justify=tk.LEFT, anchor=tk.W).grid(row=4, column=1, sticky=tk.W+tk.E+tk.N+tk.S)
+        tk.Label(meta_frame, text="Format fans:", justify=tk.LEFT, anchor=tk.W).grid(row=4, column=0, sticky=tk.W+tk.E+tk.N+tk.S)
+        tk.Label(meta_frame, text=meta_data["ffan"], justify=tk.LEFT, anchor=tk.W).grid(row=4, column=1, sticky=tk.W+tk.E+tk.N+tk.S)
+
+        tk.Label(meta_frame, text="Running time:", justify=tk.LEFT, anchor=tk.W).grid(row=5, column=0, sticky=tk.W+tk.E+tk.N+tk.S)
+        tk.Label(meta_frame, text=meta_data["elapsedTime"], justify=tk.LEFT, anchor=tk.W).grid(row=5, column=1, sticky=tk.W+tk.E+tk.S)
 
         max_pts = max(data_table[-1][1::])
         max_cls = data_table[0][data_table[-1].index(max_pts)]
 
-        tk.Label(meta_frame, text="Best cluster size:", justify=tk.LEFT, anchor=tk.W).grid(row=5, column=0, sticky=tk.W+tk.E+tk.N+tk.S)
-        tk.Label(meta_frame, text=max_cls, justify=tk.LEFT, anchor=tk.W).grid(row=5, column=1, sticky=tk.W+tk.E+tk.N+tk.S)
+        tk.Label(meta_frame, text="Best cluster size:", justify=tk.LEFT, anchor=tk.W).grid(row=6, column=0, sticky=tk.W+tk.E+tk.N+tk.S)
+        tk.Label(meta_frame, text=max_cls, justify=tk.LEFT, anchor=tk.W).grid(row=6, column=1, sticky=tk.W+tk.E+tk.N+tk.S)
 
-        tk.Label(meta_frame, text="Best cluster points:", justify=tk.LEFT, anchor=tk.W).grid(row=6, column=0, sticky=tk.W+tk.E+tk.N+tk.S)
-        tk.Label(meta_frame, text=str(max_pts), justify=tk.LEFT, anchor=tk.W).grid(row=6, column=1, sticky=tk.W+tk.E+tk.N+tk.S)
+        tk.Label(meta_frame, text="Best cluster points:", justify=tk.LEFT, anchor=tk.W).grid(row=7, column=0, sticky=tk.W+tk.E+tk.N+tk.S)
+        tk.Label(meta_frame, text=str(max_pts), justify=tk.LEFT, anchor=tk.W).grid(row=7, column=1, sticky=tk.W+tk.E+tk.N+tk.S)
         
         tk.Button(meta_frame, text="Export", command=lambda:self.kernel.cmd_export()).grid(row=100, column=0, sticky=tk.W+tk.E+tk.N+tk.S)
         return meta_frame

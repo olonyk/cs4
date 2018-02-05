@@ -11,7 +11,7 @@ class ReaderKernel(object):
     def __init__(self, parent, file_name):
         self.parent = parent
         self.file_name = file_name
-        excel_formats = [".xlsx", ".xlsm", ".xltx", ".xltm"]
+        excel_formats = [".xlsx", ".xlsm", ".xltx", ".xltm", ".xls"]
         _, file_extension = splitext(file_name)
         file_format = "csv"
         if file_extension in excel_formats:
@@ -52,6 +52,7 @@ class ReaderKernel(object):
             data = tmp_data
             sex = []
             age = []
+            ffan = {}
             cols_to_del = []
             # Iterate over the headers and search for the values given in age_symb and sex_symb.
             for i, head in reversed(list(enumerate(header))):
@@ -59,16 +60,23 @@ class ReaderKernel(object):
                     age = self.get_col(data, i)
                     self.del_col(data, i)
                     cols_to_del.append(i)
-                if head == self.app.sex_symb.get():
+                elif head == self.app.sex_symb.get():
                     sex = self.get_col(data, i)
                     self.del_col(data, i)
                     cols_to_del.append(i)
+                elif head.startswith(self.app.ffan_init.get()):
+                    ffan[head.replace(self.app.ffan_init.get(), "", 1)] = self.get_col(data, i)
+                    self.del_col(data, i)
+                    cols_to_del.append(i)
             header = [i for j, i in enumerate(header) if j not in cols_to_del]
+            
+            ffan["All"] = [1]*len(self.get_col(data, 0))
 
             self.parent.data = data
             self.parent.header = header
             self.parent.age = age
             self.parent.sex = sex
+            self.parent.ffan = ffan
 
         self.root.quit()
     
