@@ -1,11 +1,11 @@
 import json
 import time
 from os.path import dirname, join, isfile
+import sys
 from tkinter import *
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 
 import numpy as np
-from pkg_resources import resource_filename
 from scipy.special import binom
 
 from ..processes.bm_wrapper import BM_Wrapper
@@ -16,9 +16,22 @@ from .preview_kernel import PreviewKernel
 
 class MainKernel(object):
     def __init__(self, args):
+        if getattr(sys, 'frozen', False):
+                # We are running in a bundle, figure out the bundle dir.
+                bundle_dir = sys._MEIPASS
+                # Redirect stdout and stderr to log behaivour.
+                stdout_file = join(bundle_dir, "src", "resources", "settings", "stdout.txt")
+                sys.stdout = open(stdout_file, 'w')
+                sys.stderr = open(stdout_file, 'w')
+                # Find the settings file.
+                self.sfile = join(bundle_dir, "src","resources", "settings", "settings.json")
+        else:
+                # We are running in a normal Python environment.
+                # Find the settings file.
+                self.sfile = join(dirname(dirname(dirname(__file__))), "resources", "settings", "settings.json")
         # Read settings file
-        sfile = join(dirname(dirname(dirname(__file__))), "resources", "settings", "settings.json")
-        self.settings = json.load(open(sfile))
+        #sfile = join(dirname(dirname(dirname(__file__))), "resources", "settings", "settings.json")
+        self.settings = json.load(open(self.sfile))
         # Initialize variables
         self.data = []
         self.header = []
@@ -36,6 +49,7 @@ class MainKernel(object):
         self.app = MainGUI(self.root, self)
 
     def run(self):
+        print("Main Kernel running")
         while True:
             try:
                 self.root.mainloop()
@@ -45,6 +59,7 @@ class MainKernel(object):
         self.root.destroy()
 
     def cmd_import(self):
+        print("CMD import")
         file_name = askopenfilename()
         if file_name:
             ReaderKernel(self, file_name)
@@ -71,13 +86,13 @@ class MainKernel(object):
         if self.ffan:
             app.settings["ffan_list"] = self.ffan.keys()
             app.update_ffan()
-            print(app.settings["ffan_list"])
 
     def update_overview(self):
         if self.header:
             self.app.build_overview(self.data, self.header)
 
     def cmd_export(self):
+        print("CMD export")
         if self.result_table:
             file_name = asksaveasfilename(defaultextension=".xlsx")
             if file_name is None: # asksaveasfile return `None` if dialog closed with "cancel".
@@ -85,6 +100,7 @@ class MainKernel(object):
             ExportKernel(self, self.result_table, file_name)
     
     def cmd_execute(self):
+        print("CMD execute")
         if self.app.col_map:
             data = np.array(self.data)
             data = np.delete(data, [i for i, col in enumerate(self.app.col_map) if not col], axis=1)
@@ -105,7 +121,6 @@ class MainKernel(object):
                                                      neg_map=neg_val)
             elapsedTime = time.time() - startTime
             meta_data["elapsedTime"] = self.to_str_time(elapsedTime, times=2)
-            #print(elapsedTime)
             self.settings["exe_time"].append([int(self.app.info_text[1].get()), elapsedTime])
             self.save_settings()
             self.update_info()
@@ -175,10 +190,11 @@ class MainKernel(object):
 
     def save_settings(self):
         # Save the updated settings file.
-        with open(resource_filename("src.resources.settings", "settings.json"), 'w') as jsonfile:
+        with open(self.sfile, 'w') as jsonfile:
             json.dump(self.settings, jsonfile)
 
     def cmd_max_cluster_updated(self, *args):
+        print("CMD max_cluster_updated")
         if self.app.settings["max_clust"].get():
             val = self.app.settings["max_clust"].get()
             try:
@@ -189,6 +205,7 @@ class MainKernel(object):
             self.update_info()
     
     def cmd_min_cluster_updated(self, *args):
+        print("CMD min_cluster_updated")
         if self.app.settings["min_clust"].get():
             val = self.app.settings["min_clust"].get()
             try:
@@ -229,6 +246,7 @@ class MainKernel(object):
         return np.ones(len(self.data))
 
     def cmd_age_updated(self, *args):
+        print("CMD cmd_age_updated")
         age_bitmap = self.get_age_filter()
         sex_bitmap = self.get_sex_filter()
         fan_bitmap = self.get_fan_filter()
@@ -249,6 +267,7 @@ class MainKernel(object):
         
 
     def cmd_quit(self):
+        print("CMD quit")
         self.root.destroy()
 
     def update_info(self):
@@ -267,10 +286,12 @@ class MainKernel(object):
             dat = np.array(self.settings["exe_time"])
             #def lin_extrapolate(self, x, y, point):
             exe_times = self.lin_extrapolate(dat[:,0], dat[:,1], combs)[0]
-            str_time = self.to_str_time(exe_times)
+            str_time = self.to_str_time(exe_times, times=2)
             self.app.info_text[3].set(str_time)
 
     def to_str_time(self, seconds, times=1):
+        if seconds < 0:
+            return "Very fast"
         intervals = (
             ('weeks', 604800),  # 60 * 60 * 24 * 7
             ('days', 86400),    # 60 * 60 * 24
