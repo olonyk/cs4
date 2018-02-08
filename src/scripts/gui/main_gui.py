@@ -1,6 +1,7 @@
-from tkinter import *
+from tkinter import (GROOVE, LEFT, Button, Checkbutton, E, Entry, Frame, Grid,
+                     IntVar, Label, Menu, N, OptionMenu, S, StringVar, W)
 
-import numpy as np
+from numpy import array, binary_repr, int8
 
 from ..support.widgets import ScrollableFrame
 
@@ -68,11 +69,11 @@ class MainGUI(Frame):
                 var.set(1)
                 self.include_cols.append(var)
                 Checkbutton(scroll_frame,
-                            text=str(genre),
-                            justify=LEFT,
-                            anchor=W,
-                            variable=var,
-                            command=lambda: self.toggle_col()).grid(row=i, column=0, sticky=W+E)
+                               text=str(genre),
+                               justify=LEFT,
+                               anchor=W,
+                               variable=var,
+                               command=lambda: self.toggle_col()).grid(row=i, column=0, sticky=W+E)
             self.col_map = [var.get() for var in self.include_cols]
             self.settings["max_clust"].set(str(len(header)))
         self.toggle_col()
@@ -140,8 +141,8 @@ class MainGUI(Frame):
                 "sex"]
         for i, lbl_text in enumerate(lbls):
             Entry(frame, textvariable=self.settings[lbl_text], width=4).grid(row=i,
-                                                                             column=1,
-                                                                             sticky=W)
+                                                                                column=1,
+                                                                                sticky=W)
         # TODO Add format fan handle.
         self.om = OptionMenu(frame, self.settings["ffan_var"], self.settings["ffan_list"])
         self.om.grid(row=i+1, column=1, sticky=W)
@@ -176,4 +177,4 @@ class MainGUI(Frame):
     def _bin_array(self, num, m):
         """Convert a positive integer num into an m-bit bit vector
         """
-        return np.array(list(np.binary_repr(num).zfill(m))).astype(np.int8)
+        return array(list(binary_repr(num).zfill(m))).astype(int8)

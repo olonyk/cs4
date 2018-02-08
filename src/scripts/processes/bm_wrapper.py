@@ -1,7 +1,8 @@
 import multiprocessing as mp
 from copy import deepcopy
 
-import numpy as np
+from numpy import zeros, shape, logical_or, argmax, array
+from numpy import max as npmax
 
 from .bm_process import BM_Process
 
@@ -17,11 +18,11 @@ class BM_Wrapper(object):
         return result_queue.get()
 
     def _map(self, mat, map_list):
-        bit_map = np.zeros(np.shape(mat))
+        bit_map = zeros(shape(mat))
         if isinstance(map_list, int):
             map_list = [map_list]
         for map_int in map_list:
-            bit_map = np.logical_or(bit_map, mat==map_int)
+            bit_map = logical_or(bit_map, mat==map_int)
         return bit_map
 
 class BM_WrapperProcess(mp.Process):
@@ -32,13 +33,13 @@ class BM_WrapperProcess(mp.Process):
         self.result_queue = result_queue
         self.process = None
         self.workers = []
-        self.max_cluster = np.shape(self.pos_bitm)[1]
+        self.max_cluster = shape(self.pos_bitm)[1]
         if max_cluster:
             self.max_cluster = deepcopy(max_cluster)
 
     def run(self):
         nr_cpu = mp.cpu_count()
-        nr_patterns = 2**np.shape(self.pos_bitm)[1]
+        nr_patterns = 2**shape(self.pos_bitm)[1]
         pattern_per_worker = int(nr_patterns / nr_cpu)
         self.workers = []
         score_queue = mp.Queue()
@@ -79,10 +80,10 @@ class BM_WrapperProcess(mp.Process):
         for worker in self.workers:
             worker.join()
 
-        score_mat = np.zeros((nr_cpu, np.shape(self.pos_bitm)[1]))
-        pos_mat = np.zeros((nr_cpu, np.shape(self.pos_bitm)[1]))
-        neg_mat = np.zeros((nr_cpu, np.shape(self.pos_bitm)[1]))
-        pattern_mat = np.zeros((nr_cpu, np.shape(self.pos_bitm)[1]))
+        score_mat = zeros((nr_cpu, shape(self.pos_bitm)[1]))
+        pos_mat = zeros((nr_cpu, shape(self.pos_bitm)[1]))
+        neg_mat = zeros((nr_cpu, shape(self.pos_bitm)[1]))
+        pattern_mat = zeros((nr_cpu, shape(self.pos_bitm)[1]))
         i = 0
         while not score_queue.empty():
             score_post = score_queue.get()
@@ -91,11 +92,11 @@ class BM_WrapperProcess(mp.Process):
             pos_mat[i][:] = score_post["pos"]
             neg_mat[i][:] = score_post["neg"]
             i += 1
-        score_vec = np.max(score_mat, axis=0)
-        pattern_vec = np.array([pattern_mat[j][i]
-                                for i, j in enumerate(np.argmax(score_mat, axis=0))])
-        neg_vec = np.array([neg_mat[j][i] for i, j in enumerate(np.argmax(score_mat, axis=0))])
-        pos_vec = np.array([pos_mat[j][i] for i, j in enumerate(np.argmax(score_mat, axis=0))])
+        score_vec = npmax(score_mat, axis=0)
+        pattern_vec = array([pattern_mat[j][i]
+                                for i, j in enumerate(argmax(score_mat, axis=0))])
+        neg_vec = array([neg_mat[j][i] for i, j in enumerate(argmax(score_mat, axis=0))])
+        pos_vec = array([pos_mat[j][i] for i, j in enumerate(argmax(score_mat, axis=0))])
         self.result_queue.put({"score_vec":score_vec,
                                "pattern_vec":pattern_vec,
                                "pos_vec":pos_vec,

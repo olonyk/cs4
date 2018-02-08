@@ -1,4 +1,4 @@
-from tkinter import *
+from tkinter import Tk
 
 from openpyxl import Workbook
 from openpyxl.chart import AreaChart, Reference, Series

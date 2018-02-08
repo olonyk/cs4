@@ -1,5 +1,7 @@
 from multiprocessing import Process
-import numpy as np
+from numpy import inf, ones, shape, array, binary_repr, int8, zeros
+from numpy import sum as npsum
+from numpy import any as npany
 
 class BM_Process(Process):
     def __init__(self, **kwargs):
@@ -8,7 +10,7 @@ class BM_Process(Process):
         self.pos_bm=kwargs["pos_bm"]
         self.neg_bm=kwargs["neg_bm"]
         self._start=1
-        self._m = 2**np.shape(self.pos_bm)[1]
+        self._m = 2**shape(self.pos_bm)[1]
         self._end= self._m
         self._score_mat = None
 
@@ -22,23 +24,23 @@ class BM_Process(Process):
         self.max_cluster = kwargs["max_cluster"]
 
     def run(self):
-        _, cols = np.shape(self.pos_bm)
-        top_scores = np.ones(cols)*-np.inf
-        top_pos = np.ones(cols)*-np.inf
-        top_neg = np.ones(cols)*-np.inf
-        top_pattern = np.zeros(cols)
+        _, cols = shape(self.pos_bm)
+        top_scores = ones(cols)*-inf
+        top_pos = ones(cols)*-inf
+        top_neg = ones(cols)*-inf
+        top_pattern = zeros(cols)
         for running_int in range(self._start, self._end):
             col_pattern = self._bin_array(running_int, cols)
-            if np.sum(col_pattern) > self.max_cluster:
+            if npsum(col_pattern) > self.max_cluster:
                 continue
-            pos_score = np.any(self.pos_bm * col_pattern, axis=1)
-            neg_score = np.any(self.neg_bm * col_pattern, axis=1)
-            pattern_score = np.sum(pos_score) - np.sum(neg_score)
+            pos_score = npany(self.pos_bm * col_pattern, axis=1)
+            neg_score = npany(self.neg_bm * col_pattern, axis=1)
+            pattern_score = npsum(pos_score) - npsum(neg_score)
             if pattern_score > top_scores[sum(col_pattern)-1]:
                 top_scores[sum(col_pattern)-1] = pattern_score
                 top_pattern[sum(col_pattern)-1] = running_int
-                top_pos[sum(col_pattern)-1] = np.sum(pos_score)
-                top_neg[sum(col_pattern)-1] = np.sum(neg_score)
+                top_pos[sum(col_pattern)-1] = npsum(pos_score)
+                top_neg[sum(col_pattern)-1] = npsum(neg_score)
             if running_int % 10000 == 0:
                 print((running_int - self._start)/(self._end - self._start))
         # Write the result to the score and pattern matrices.
@@ -52,4 +54,4 @@ class BM_Process(Process):
     def _bin_array(self, num, m):
         """Convert a positive integer num into an m-bit bit vector
         """
-        return np.array(list(np.binary_repr(num).zfill(m))).astype(np.int8)
+        return array(list(binary_repr(num).zfill(m))).astype(int8)

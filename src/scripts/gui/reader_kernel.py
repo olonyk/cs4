@@ -1,5 +1,5 @@
 from os.path import splitext
-from tkinter import *
+from tkinter import Tk, messagebox
 
 from openpyxl import load_workbook
 from openpyxl.utils.exceptions import InvalidFileException
@@ -55,21 +55,28 @@ class ReaderKernel(object):
             ffan = {}
             cols_to_del = []
             # Iterate over the headers and search for the values given in age_symb and sex_symb.
-            for i, head in reversed(list(enumerate(header))):
-                if head == self.app.age_symb.get():
-                    age = self.get_col(data, i)
-                    self.del_col(data, i)
-                    cols_to_del.append(i)
-                elif head == self.app.sex_symb.get():
-                    sex = self.get_col(data, i)
-                    self.del_col(data, i)
-                    cols_to_del.append(i)
-                elif head.startswith(self.app.ffan_init.get()):
-                    ffan[head.replace(self.app.ffan_init.get(), "", 1)] = self.get_col(data, i)
-                    self.del_col(data, i)
-                    cols_to_del.append(i)
+            try:
+                for i, head in reversed(list(enumerate(header))):
+                    if head == self.app.age_symb.get():
+                        age = self.get_col(data, i)
+                        self.del_col(data, i)
+                        cols_to_del.append(i)
+                    elif head == self.app.sex_symb.get():
+                        sex = self.get_col(data, i)
+                        self.del_col(data, i)
+                        cols_to_del.append(i)
+                    elif head.startswith(self.app.ffan_init.get()):
+                        ffan[head.replace(self.app.ffan_init.get(), "", 1)] = self.get_col(data, i)
+                        self.del_col(data, i)
+                        cols_to_del.append(i)
+            except AttributeError:
+                # Ends up here if the file is wrongly formated
+                messagebox.showerror("Import error",
+                                     "Unable to import data due to wrongly formated file.")
+                self.root.quit()
+                return
+
             header = [i for j, i in enumerate(header) if j not in cols_to_del]
-            
             ffan["All"] = [1]*len(self.get_col(data, 0))
 
             self.parent.data = data

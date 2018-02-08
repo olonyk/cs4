@@ -1,18 +1,20 @@
 import json
-import time
-from os.path import dirname, join, isfile
 import sys
-from tkinter import *
+import time
+from os.path import dirname, isfile, join
+from tkinter import Tk
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 
-import numpy as np
+from numpy import (array, asarray, binary_repr, concatenate, delete, int8,
+                   linalg, logical_and, logical_or, ones, shape, zeros)
 from scipy.special import binom
 
 from ..processes.bm_wrapper import BM_Wrapper
-from .main_gui import MainGUI
-from .reader_kernel import ReaderKernel
 from .export_kernel import ExportKernel
+from .main_gui import MainGUI
 from .preview_kernel import PreviewKernel
+from .reader_kernel import ReaderKernel
+
 
 class MainKernel(object):
     def __init__(self, args):
@@ -30,8 +32,8 @@ class MainKernel(object):
                 # Find the settings file.
                 self.sfile = join(dirname(dirname(dirname(__file__))), "resources", "settings", "settings.json")
         # Read settings file
-        #sfile = join(dirname(dirname(dirname(__file__))), "resources", "settings", "settings.json")
         self.settings = json.load(open(self.sfile))
+
         # Initialize variables
         self.data = []
         self.header = []
@@ -63,7 +65,7 @@ class MainKernel(object):
         file_name = askopenfilename()
         if file_name:
             ReaderKernel(self, file_name)
-            self.row_map = np.ones(len(self.data))
+            self.row_map = ones(len(self.data))
             self.update_overview()
             self.default_settings()
 
@@ -102,10 +104,10 @@ class MainKernel(object):
     def cmd_execute(self):
         print("CMD execute")
         if self.app.col_map:
-            data = np.array(self.data)
-            data = np.delete(data, [i for i, col in enumerate(self.app.col_map) if not col], axis=1)
+            data = array(self.data)
+            data = delete(data, [i for i, col in enumerate(self.app.col_map) if not col], axis=1)
             if hasattr(self.row_map, "shape"):
-                data = np.delete(data, [i for i, row in enumerate(self.row_map) if not row], axis=0)
+                data = delete(data, [i for i, row in enumerate(self.row_map) if not row], axis=0)
             meta_data = {"pos_val":self.get_vals(self.app.settings["pos_val"]),
                          "neg_val":self.get_vals(self.app.settings["neg_val"]),
                          "max_clust":int(self.app.settings["max_clust"].get()),
@@ -216,13 +218,13 @@ class MainKernel(object):
             self.update_info()
 
     def get_age_filter(self):
-        age_bitmap = np.ones(len(self.data))
+        age_bitmap = ones(len(self.data))
         if self.age:
             try:
                 min_age = int(self.app.settings["min_age"].get())
                 max_age = int(self.app.settings["max_age"].get())
-                age_bitmap = np.logical_and(np.array(self.age) >= min_age,
-                                            np.array(self.age) <= max_age)
+                age_bitmap = logical_and(array(self.age) >= min_age,
+                                            array(self.age) <= max_age)
             except ValueError:
                 pass
         elif self.app:
@@ -233,36 +235,36 @@ class MainKernel(object):
     def get_sex_filter(self):
         if self.sex:
             try:
-                sex_bitmap = np.zeros(len(self.data))
+                sex_bitmap = zeros(len(self.data))
                 sexes = self.get_vals(self.app.settings["sex"])
                 for sex in sexes:
-                    sex_bitmap = np.logical_or(sex_bitmap,
-                                               np.array(self.sex) == sex)
+                    sex_bitmap = logical_or(sex_bitmap,
+                                               array(self.sex) == sex)
                 return sex_bitmap
             except ValueError:
                 pass
         elif self.app:
             self.app.settings["sex"].set("N/A")
-        return np.ones(len(self.data))
+        return ones(len(self.data))
 
     def cmd_age_updated(self, *args):
         print("CMD cmd_age_updated")
         age_bitmap = self.get_age_filter()
         sex_bitmap = self.get_sex_filter()
         fan_bitmap = self.get_fan_filter()
-        self.row_map = np.logical_and(age_bitmap, sex_bitmap)
-        self.row_map = np.logical_and(self.row_map, fan_bitmap)
+        self.row_map = logical_and(age_bitmap, sex_bitmap)
+        self.row_map = logical_and(self.row_map, fan_bitmap)
         if self.app:
             self.update_info()
         
     def get_fan_filter(self):
-        fan_bitmap = np.ones(len(self.data))
+        fan_bitmap = ones(len(self.data))
         if self.ffan:
             fan_string = self.app.settings["ffan_var"].get()
             if fan_string == "All" or fan_string == "":
-                fan_bitmap = np.ones(len(self.data))
+                fan_bitmap = ones(len(self.data))
             else:
-                fan_bitmap = np.asarray(self.ffan[fan_string])
+                fan_bitmap = asarray(self.ffan[fan_string])
         return fan_bitmap
         
 
@@ -281,9 +283,9 @@ class MainKernel(object):
                 combs += binom(sum(self.app.col_map), i)
             self.app.info_text[1].set(str(int(combs)))
             # Update number of participants
-            self.app.info_text[2].set("{:d}".format(int(np.sum(self.row_map))))
+            self.app.info_text[2].set("{:d}".format(int(sum(self.row_map))))
             # Update estimated time using linear interpolation
-            dat = np.array(self.settings["exe_time"])
+            dat = array(self.settings["exe_time"])
             #def lin_extrapolate(self, x, y, point):
             exe_times = self.lin_extrapolate(dat[:,0], dat[:,1], combs)[0]
             str_time = self.to_str_time(exe_times, times=2)
@@ -316,13 +318,13 @@ class MainKernel(object):
         return ', '.join(result[:])
 
     def lin_extrapolate(self, x, y, point):
-        x = np.array([x])
-        x = np.concatenate((x, np.ones(np.shape(x))), axis=0).T
-        y = np.array([y]).T
-        m, c = np.linalg.lstsq(x, y)[0]
+        x = array([x])
+        x = concatenate((x, ones(shape(x))), axis=0).T
+        y = array([y]).T
+        m, c = linalg.lstsq(x, y)[0]
         return m*point + c
 
     def _bin_array(self, num, m):
         """Convert a positive integer num into an m-bit bit vector
         """
-        return np.array(list(np.binary_repr(num).zfill(m))).astype(np.int8)
+        return array(list(binary_repr(num).zfill(m))).astype(int8)

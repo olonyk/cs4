@@ -1,12 +1,12 @@
 from .preview_gui import PreviewGUI
-import tkinter as tk
+from tkinter import Tk
 from .export_kernel import ExportKernel
 from tkinter.filedialog import asksaveasfilename
 
 class PreviewKernel(object):
     def __init__(self, data_table, meta_data):
         self.data_table = data_table
-        self.root = tk.Tk()
+        self.root = Tk()
         self.app = PreviewGUI(self.root, self, data_table, meta_data)
         self.root.mainloop()
         self.root.destroy()
