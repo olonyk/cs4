@@ -7,4 +7,6 @@
 build/
 dist/
 help_sources/
+icons/
 *.spec
+*.xlsx
