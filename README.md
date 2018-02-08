@@ -19,6 +19,7 @@
    + Fix titles of windows.
    + Change the term "sex" to "gender".
    + Import by pressing `cmd + o`
+   + Slim imports by using precise imports (Compiled app before: 125.7 MB, After: 125.7 MB). √
 6. Figure out how to make a standalone executable. √
 
 ### Known bugs
@@ -27,3 +28,4 @@
 3. The file format `.xls`is not supportet.
 4. Time estimate says -1 weeks.
 5. Sometimes when scrolling is preformed the following error occurs: `UnicodeDecodeError: 'utf-8' codec can't decode byte 0xff in position 0: invalid start byte`.
+6. Analyse doesn't run in distributed windowed form. √
