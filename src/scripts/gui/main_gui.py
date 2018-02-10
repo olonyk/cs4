@@ -1,5 +1,5 @@
 from tkinter import (GROOVE, LEFT, Button, Checkbutton, E, Entry, Frame, Grid,
-                     IntVar, Label, Menu, N, OptionMenu, S, StringVar, W)
+                     IntVar, Label, Menu, N, OptionMenu, S, StringVar, W, RIGHT)
 
 from numpy import array, binary_repr, int8
 
@@ -62,6 +62,18 @@ class MainGUI(Frame):
         z_frame.grid(row=1, column=1, sticky=W+E+N+S)
 
         scroll_frame = ScrollableFrame(win_frame, x_frame, y_frame)
+        # (De) select all
+        Button(scroll_frame,
+               text="Select",
+               justify=LEFT,
+               anchor=W,
+               command=lambda: self.toggle_all(1)).grid(row=0, column=0, sticky=W+E)
+        Button(scroll_frame,
+               text="Deselect",
+               justify=LEFT,
+               anchor=W,
+               command=lambda: self.toggle_all(0)).grid(row=0, column=1, sticky=W+E)
+
         if header:
             self.include_cols = []
             for i, genre in enumerate(header):
@@ -73,10 +85,17 @@ class MainGUI(Frame):
                                justify=LEFT,
                                anchor=W,
                                variable=var,
-                               command=lambda: self.toggle_col()).grid(row=i, column=0, sticky=W+E)
+                               command=lambda: self.toggle_col()).grid(row=i+1, column=0, sticky=W+E, columnspan=2)
             self.col_map = [var.get() for var in self.include_cols]
             self.settings["max_clust"].set(str(len(header)))
         self.toggle_col()
+
+    def toggle_all(self, var):
+        for style in self.include_cols:
+            style.set(var)
+        self.col_map = [var.get() for var in self.include_cols]
+        if int(self.settings["max_clust"].get()) > sum(self.col_map):
+            self.settings["max_clust"].set(str(sum(self.col_map)))
 
     def toggle_col(self):
         self.col_map = [var.get() for var in self.include_cols]
@@ -87,10 +106,13 @@ class MainGUI(Frame):
     def build_menue_bar(self):
         menubar = Menu(self.master)
         filemenu = Menu(menubar, tearoff=0)
-        filemenu.add_command(label="Import...", command=self.kernel.cmd_import)
-        filemenu.add_command(label="Export...", command=self.kernel.cmd_export)
+        filemenu.add_command(label="Import...",
+                             command=self.kernel.cmd_import,
+                             accelerator = 'cmd+i')
         filemenu.add_separator()
-        filemenu.add_command(label="Exit", command=self.kernel.cmd_quit)
+        filemenu.add_command(label="View log",
+                             command=self.kernel.cmd_view_log)
+        self.master.bind_all('<Mod1-i>', self.kernel.cmd_import)
         menubar.add_cascade(label="File", menu=filemenu)
         self.master.config(menu=menubar)
 
@@ -128,7 +150,7 @@ class MainGUI(Frame):
                 "Minimum cluster size:",
                 "Maximum age:",
                 "Minimum age:",
-                "Sex:",
+                "Gender:",
                 "Format fan:"]
         for i, lbl_text in enumerate(lbls):
             Label(frame, text=lbl_text).grid(row=i, column=0, sticky=W)
