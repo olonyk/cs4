@@ -12,6 +12,7 @@ class PreviewGUI(Frame):
     def __init__(self, master, kernel, data_table, meta_data):
         self.kernel = kernel
         self.master = master
+        master.title("Preview")
 
         self.master.columnconfigure(0, weight=1)
         self.master.rowconfigure(0, weight=1)
@@ -43,7 +44,7 @@ class PreviewGUI(Frame):
     def build_graph_frame(self, data_table, meta_data):
         graph_frame = Frame(self.top_frame, relief=GROOVE, bd=1)
 
-        pts_tot = data_table[-1][1::]
+        pts_tot = [pts for pts in data_table[-1] if isinstance(pts, int)]
         x_range = arange(meta_data["min_clust"], meta_data["max_clust"]+1, 1.0)
         fig = Figure(figsize=(5, 3), dpi=100)
         sub_fig = fig.add_subplot(111)
@@ -104,32 +105,48 @@ class PreviewGUI(Frame):
     def build_meta_data_frame(self, data_table, meta_data):
         meta_frame = Frame(self.top_frame, relief=GROOVE, bd=1)
 
-        Label(meta_frame, text="Positiv values:", justify=LEFT, anchor=W).grid(row=0, column=0, sticky=W+E+N+S)
-        Label(meta_frame, text=meta_data["pos_val"], justify=LEFT, anchor=W).grid(row=0, column=1, sticky=W+E+N+S)
+        grid_row = 0
+        Label(meta_frame, text="Positiv values:", justify=LEFT, anchor=W).grid(row=grid_row, column=0, sticky=W+E+N+S)
+        Label(meta_frame, text=meta_data["pos_val"], justify=LEFT, anchor=W).grid(row=grid_row, column=1, sticky=W+E+N+S)
 
-        Label(meta_frame, text="Negativ values:", justify=LEFT, anchor=W).grid(row=1, column=0, sticky=W+E+N+S)
-        Label(meta_frame, text=meta_data["neg_val"], justify=LEFT, anchor=W).grid(row=1, column=1, sticky=W+E+N+S)
+        grid_row += 1
+        Label(meta_frame, text="Negativ values:", justify=LEFT, anchor=W).grid(row=grid_row, column=0, sticky=W+E+N+S)
+        Label(meta_frame, text=meta_data["neg_val"], justify=LEFT, anchor=W).grid(row=grid_row, column=1, sticky=W+E+N+S)
 
-        Label(meta_frame, text="Largest cluster:", justify=LEFT, anchor=W).grid(row=2, column=0, sticky=W+E+N+S)
-        Label(meta_frame, text=meta_data["max_clust"], justify=LEFT, anchor=W).grid(row=2, column=1, sticky=W+E+N+S)
+        grid_row += 1
+        Label(meta_frame, text="Largest cluster:", justify=LEFT, anchor=W).grid(row=grid_row, column=0, sticky=W+E+N+S)
+        Label(meta_frame, text=meta_data["max_clust"], justify=LEFT, anchor=W).grid(row=grid_row, column=1, sticky=W+E+N+S)
 
-        Label(meta_frame, text="Smallest cluster:", justify=LEFT, anchor=W).grid(row=3, column=0, sticky=W+E+N+S)
-        Label(meta_frame, text=meta_data["min_clust"], justify=LEFT, anchor=W).grid(row=3, column=1, sticky=W+E+N+S)
+        grid_row += 1
+        Label(meta_frame, text="Smallest cluster:", justify=LEFT, anchor=W).grid(row=grid_row, column=0, sticky=W+E+N+S)
+        Label(meta_frame, text=meta_data["min_clust"], justify=LEFT, anchor=W).grid(row=grid_row, column=1, sticky=W+E+N+S)
         
-        Label(meta_frame, text="Format fans:", justify=LEFT, anchor=W).grid(row=4, column=0, sticky=W+E+N+S)
-        Label(meta_frame, text=meta_data["ffan"], justify=LEFT, anchor=W).grid(row=4, column=1, sticky=W+E+N+S)
+        grid_row += 1
+        Label(meta_frame, text="Age span:", justify=LEFT, anchor=W).grid(row=grid_row, column=0, sticky=W+E+N+S)
+        Label(meta_frame, text="{} - {}".format(meta_data["min_age"], meta_data["max_age"]), justify=LEFT, anchor=W).grid(row=grid_row, column=1, sticky=W+E+N+S)
 
-        Label(meta_frame, text="Running time:", justify=LEFT, anchor=W).grid(row=5, column=0, sticky=W+E+N+S)
-        Label(meta_frame, text=meta_data["elapsedTime"], justify=LEFT, anchor=W).grid(row=5, column=1, sticky=W+E+S)
+        grid_row += 1
+        Label(meta_frame, text="Gender:", justify=LEFT, anchor=W).grid(row=grid_row, column=0, sticky=W+E+N+S)
+        Label(meta_frame, text=meta_data["sex"], justify=LEFT, anchor=W).grid(row=grid_row, column=1, sticky=W+E+N+S)
 
-        max_pts = max(data_table[-1][1::])
+        grid_row += 1
+        Label(meta_frame, text="Format fans:", justify=LEFT, anchor=W).grid(row=grid_row, column=0, sticky=W+E+N+S)
+        Label(meta_frame, text=meta_data["ffan"], justify=LEFT, anchor=W).grid(row=grid_row, column=1, sticky=W+E+N+S)
+
+        grid_row += 1
+        Label(meta_frame, text="Running time:", justify=LEFT, anchor=W).grid(row=grid_row, column=0, sticky=W+E+N+S)
+        Label(meta_frame, text=meta_data["elapsedTime"], justify=LEFT, anchor=W).grid(row=grid_row, column=1, sticky=W+E+S)
+
+        max_pts = max([pts for pts in data_table[-1] if isinstance(pts, int)])
         max_cls = data_table[0][data_table[-1].index(max_pts)]
 
-        Label(meta_frame, text="Best cluster size:", justify=LEFT, anchor=W).grid(row=6, column=0, sticky=W+E+N+S)
-        Label(meta_frame, text=max_cls, justify=LEFT, anchor=W).grid(row=6, column=1, sticky=W+E+N+S)
+        grid_row += 1
+        Label(meta_frame, text="Best cluster size:", justify=LEFT, anchor=W).grid(row=grid_row, column=0, sticky=W+E+N+S)
+        Label(meta_frame, text=max_cls, justify=LEFT, anchor=W).grid(row=grid_row, column=1, sticky=W+E+N+S)
 
-        Label(meta_frame, text="Best cluster points:", justify=LEFT, anchor=W).grid(row=7, column=0, sticky=W+E+N+S)
-        Label(meta_frame, text=str(max_pts), justify=LEFT, anchor=W).grid(row=7, column=1, sticky=W+E+N+S)
+        grid_row += 1
+        Label(meta_frame, text="Best cluster points:", justify=LEFT, anchor=W).grid(row=grid_row, column=0, sticky=W+E+N+S)
+        Label(meta_frame, text=str(max_pts), justify=LEFT, anchor=W).grid(row=grid_row, column=1, sticky=W+E+N+S)
         
         Button(meta_frame, text="Export", command=lambda:self.kernel.cmd_export()).grid(row=100, column=0, sticky=W+E+N+S)
         return meta_frame
