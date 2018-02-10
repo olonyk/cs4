@@ -14,23 +14,26 @@ from .export_kernel import ExportKernel
 from .main_gui import MainGUI
 from .preview_kernel import PreviewKernel
 from .reader_kernel import ReaderKernel
-
+from ..support.widgets import ViewLog
 
 class MainKernel(object):
     def __init__(self, args):
         if getattr(sys, 'frozen', False):
-                # We are running in a bundle, figure out the bundle dir.
-                bundle_dir = sys._MEIPASS
-                # Redirect stdout and stderr to log behaivour.
-                stdout_file = join(bundle_dir, "src", "resources", "settings", "stdout.txt")
-                sys.stdout = open(stdout_file, 'w')
-                sys.stderr = open(stdout_file, 'w')
-                # Find the settings file.
-                self.sfile = join(bundle_dir, "src","resources", "settings", "settings.json")
+            # We are running in a bundle, figure out the bundle dir.
+            bundle_dir = sys._MEIPASS
+            # Redirect stdout and stderr to log behaivour.
+            stdout_file = join(bundle_dir, "src", "resources", "settings", "stdout.txt")
+            sys.stdout = open(stdout_file, 'w')
+            sys.stderr = open(stdout_file, 'w')
+            # Find the settings file.
+            self.sfile = join(bundle_dir, "src", "resources", "settings", "settings.json")
         else:
-                # We are running in a normal Python environment.
-                # Find the settings file.
-                self.sfile = join(dirname(dirname(dirname(__file__))), "resources", "settings", "settings.json")
+            # We are running in a normal Python environment.
+            # Find the settings file.
+            self.sfile = join(dirname(dirname(dirname(__file__))),
+                              "resources",
+                              "settings",
+                              "settings.json")
         # Read settings file
         self.settings = json.load(open(self.sfile))
 
@@ -60,7 +63,7 @@ class MainKernel(object):
                 pass
         self.root.destroy()
 
-    def cmd_import(self):
+    def cmd_import(self, *args):
         print("CMD import")
         file_name = askopenfilename()
         if file_name:
@@ -68,6 +71,12 @@ class MainKernel(object):
             self.row_map = ones(len(self.data))
             self.update_overview()
             self.default_settings()
+
+    def cmd_view_log(self, *args):
+        print("CMD view log")
+        args = ()
+        ViewLog()
+        
 
     def default_settings(self, app=None):
         if not app:
@@ -108,13 +117,22 @@ class MainKernel(object):
             data = delete(data, [i for i, col in enumerate(self.app.col_map) if not col], axis=1)
             if hasattr(self.row_map, "shape"):
                 data = delete(data, [i for i, row in enumerate(self.row_map) if not row], axis=0)
+            print("shape(data):", shape(data))
+            # Bad settings
+            if int(self.app.settings["max_clust"].get()) == 0 or not shape(data)[1]:
+                return
+            
             meta_data = {"pos_val":self.get_vals(self.app.settings["pos_val"]),
                          "neg_val":self.get_vals(self.app.settings["neg_val"]),
                          "max_clust":int(self.app.settings["max_clust"].get()),
                          "min_clust":int(self.app.settings["min_clust"].get()),
+                         "min_age":self.app.settings["min_age"].get(),
+                         "max_age":self.app.settings["max_age"].get(),
+                         "sex":self.app.settings["sex"].get(),
                          "ffan":self.app.settings["ffan_var"].get()}
             pos_val = self.get_vals(self.app.settings["pos_val"])
             neg_val = self.get_vals(self.app.settings["neg_val"])
+            print(meta_data)
             max_clust = int(self.app.settings["max_clust"].get())
             startTime = time.time()
             result_dictionary = BM_Wrapper().analyse(max_cluster=max_clust,
@@ -122,6 +140,7 @@ class MainKernel(object):
                                                      pos_map=pos_val,
                                                      neg_map=neg_val)
             elapsedTime = time.time() - startTime
+            print("Elapsed time:", elapsedTime)
             meta_data["elapsedTime"] = self.to_str_time(elapsedTime, times=2)
             self.settings["exe_time"].append([int(self.app.info_text[1].get()), elapsedTime])
             self.save_settings()

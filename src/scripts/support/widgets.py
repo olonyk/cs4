@@ -1,7 +1,9 @@
 from tkinter import (BOTH, GROOVE, HORIZONTAL, LEFT, NW, RIGHT, Button, Canvas,
-                     Frame, Label, Scrollbar, StringVar, X, Y, ttk)
+                     Frame, Label, Scrollbar, StringVar, X, Y, ttk, Tk, Text, END)
 from tkinter.colorchooser import askcolor
-
+from os.path import dirname, isfile, join
+import os
+import sys
 
 class ScrollableFrame(ttk.Frame):
     """ Consider me a regular frame with a vertical scrollbar 
@@ -69,3 +71,51 @@ class ColorWidget(Frame):
         if color[1]:
             self.color.set(color[1])
             self.color_lbl.configure(background=self.color.get())
+
+class ViewLog(object):
+    def __init__(self):
+        root = Tk()
+        ViewLogGUI(root)
+        root.mainloop()
+
+class ViewLogGUI(Frame):
+    def __init__(self, master):
+        self.master = master
+        master.title("Log file")
+        content_frame = Frame(master, width=400, height=200)
+        content_frame.pack(fill=BOTH)
+        master.resizable(width=False, height=False)
+
+        log_text = self.get_log_file()
+
+        text_area = Text(content_frame, height=20, width=30)
+        text_area.pack()
+        text_area.insert(END, log_text)
+
+        close_button = Button(content_frame, text="Close", command=master.quit)
+        close_button.pack()
+    
+    def get_log_file(self):
+        if getattr(sys, 'frozen', False):
+            # We are running in a bundle, figure out the bundle dir.
+            bundle_dir = sys._MEIPASS
+            # Find stdout and stderr file.
+            stdout_file = join(bundle_dir, "src", "resources", "settings", "stdout.txt")
+            # Temporary put stdout back
+            sys.stdout = sys.__stdout__
+            sys.stderr = sys.__stderr__
+        else:
+            # We are running in a normal Python environment.
+            # Find the settings file.
+            stdout_file = join(dirname(dirname(dirname(dirname(__file__)))), "src", "resources",
+                               "settings",
+                               "stdout.txt")
+        # Read settings file
+        with open(stdout_file) as open_file:
+            content = open_file.readlines()
+        
+        # Redirect stdout back to logfile
+        if getattr(sys, 'frozen', False):
+            sys.stdout = open(stdout_file, 'w')
+            sys.stderr = open(stdout_file, 'w')
+        return "".join(content)
