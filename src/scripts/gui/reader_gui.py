@@ -7,6 +7,7 @@ class ReaderGUI(Frame):
     def __init__(self, master, kernel, file_format):
         self.kernel = kernel
         self.master = master
+        master.title("Import")
         self.top_frame = Frame(master, width=400, height=200)
         self.top_frame.pack(fill=BOTH)
         self.master.resizable(width=False, height=False)
@@ -56,7 +57,7 @@ class ReaderGUI(Frame):
                 OptionMenu(self.settings_frame, self.sheet, *sheets).grid(row=0, column=1, sticky=W)
                 Label(self.settings_frame, text="Header row:").grid(row=1, column=0, sticky=W)
                 Entry(self.settings_frame, textvariable=self.header, width=1).grid(row=1, column=1, sticky=W)
-                Label(self.settings_frame, text="Sex header:").grid(row=2, column=0, sticky=W)
+                Label(self.settings_frame, text="Gender header:").grid(row=2, column=0, sticky=W)
                 Entry(self.settings_frame, textvariable=self.sex_symb, width=5).grid(row=2, column=1, sticky=W)
                 Label(self.settings_frame, text="Age header:").grid(row=3, column=0, sticky=W)
                 Entry(self.settings_frame, textvariable=self.age_symb, width=5).grid(row=3, column=1, sticky=W)

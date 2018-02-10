@@ -14,6 +14,7 @@ class ExportGUI(Frame):
     def __init__(self, master, kernel):
         self.kernel = kernel
         self.master = master
+        master.title("Export")
         self.top_frame = Frame(master, width=400, height=200)
         self.top_frame.pack(fill=BOTH)
         self.master.resizable(width=False, height=False)
